@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,9 +7,10 @@ import {
   SafeAreaView,
   TextInput,
 } from "react-native";
+import { AuthContext } from "../App";
 
 const SignInScreen = ({ navigation }) => {
-  //const { signUp } = React.useContext(AuthContext);
+  const { signIn } = useContext(AuthContext);
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   return (
@@ -40,10 +41,7 @@ const SignInScreen = ({ navigation }) => {
         <View style={styles.buttons}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>
-              //signUp({ username, password })}
-              {}
-            }
+            onPress={() => signIn({ userId, password })}
           >
             <Text style={styles.buttonText}>로그인</Text>
           </TouchableOpacity>

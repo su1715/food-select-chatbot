@@ -22,10 +22,10 @@ const AuthScreen = ({ navigation }) => {
       </View>
       <View style={styles.buttonWrapper}>
         <TouchableOpacity style={styles.signInButton} onPress={onSignIn}>
-          <Text style={styles.signInButtonText}>Sign In</Text>
+          <Text style={styles.signInButtonText}>로그인</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.signUpButton} onPress={onSignUp}>
-          <Text style={styles.signUpButtonText}>Sign Up</Text>
+          <Text style={styles.signUpButtonText}>회원가입</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

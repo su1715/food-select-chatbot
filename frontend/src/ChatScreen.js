@@ -43,7 +43,7 @@ const ChatScreen = ({ navigation }) => {
         <TouchableOpacity onPress={onBack}>
           <Text>뒤로</Text>
         </TouchableOpacity>
-        <Text style={styles.title}>뭐먹을까 아무거나</Text>
+        <Text style={styles.title}>뭐먹을까? 아무거나!</Text>
         <TouchableOpacity onPress={onReload}>
           <Text>다시</Text>
         </TouchableOpacity>

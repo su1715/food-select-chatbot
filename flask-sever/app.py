@@ -2,50 +2,79 @@ import urllib
 import json
 import os
 from flask import Flask, request, make_response, jsonify, url_for, render_template, redirect
+from flask_jwt_extended import *
 from models import db
 from models import User
 
 # initialize the flask app
 app = Flask(__name__)
-
+app.config.update(
+    DEBUG=True,
+    JWT_SECRET_KEY="food-selector"
+)
+jwt = JWTManager(app)
 # default route
 
 
 @app.route('/')
 def index():
+    print("hello")
     return 'Hello World..........'
 
 
-@app.route('/register', methods=['GET', 'POST'])
-def login():
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
     if request.method == 'GET':
-        return render_template("register.html")
+        return "GET으로 입력되었습니다"
     else:
-        # 회원정보 생성
-        userid = request.form.get('userid')
-        username = request.form.get('username')
-        password = request.form.get('password')
-        re_password = request.form.get('re_password')
-        print(password)  # 들어오나 확인해볼 수 있다.
+        data = request.get_json(force=True)
+        userId = data['userId']
+        username = data['username']
+        password = data['password']
+        repassword = data['repassword']
 
-        if not (userid and username and password and re_password):
-            return "모두 입력해주세요"
-        elif password != re_password:
-            return "비밀번호를 확인해주세요"
-        # TODO: 원래 있는 아이디인지 확인하기
+        if not (userId and username and password and repassword):
+            return jsonify(result="fail", error="모두 입력해주세요.")
+        elif password != repassword:
+            return jsonify(result="fail", error="비밀번호 확인이 일치하지 않습니다.")
+            # TODO: 원래 있는 아이디인지 확인하기
         else:  # 모두 입력이 정상적으로 되었다면 밑에명령실행(DB에 입력됨)
-            user = User()
-            user.password = password  # models의 User 클래스를 이용해 db에 입력한다.
-            user.userid = userid
-            user.username = username
-            db.session.add(user)
-            db.session.commit()
-            return "회원가입 완료"
+            cnt = User.query.filter_by(userid=userId).count()
+            if(cnt > 0):
+                return jsonify(result="fail", error="이미 존재하는 아이디 입니다.")
+            else:
+                user = User()
+                user.password = password  # models의 User 클래스를 이용해 db에 입력한다.
+                user.userid = userId
+                user.username = username
+                db.session.add(user)
+                db.session.commit()
+                access_token = create_access_token(
+                    identity=userId, expires_delta=False)
+                return jsonify(result="success", token=access_token)
 
-        return redirect('/')
 
+@app.route('/signin', methods=['GET', 'POST'])
+def signin():
+    if request.method == 'GET':
+        return "GET으로 입력되었습니다"
+    else:
+        data = request.get_json(force=True)
+        userId = data['userId']
+        password = data['password']
+        # db에 같은 정보 있는지 확인
+        cnt = User.query.filter_by(userid=userId).filter_by(
+            password=password).count()
+        if cnt:
+            access_token = create_access_token(
+                identity=userId, expires_delta=False)
+            return jsonify(result="success", token=access_token)
+        else:
+            return jsonify(result="fail", error="계정정보가 일치하지 않습니다.")
 
 # create a route for webhook
+
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json(force=True)
@@ -58,21 +87,6 @@ def webhook():
         "fulfillmentText": country+ingredient+temperature+spicy+simple+' 음식 준비해드리겠습니다',
         "source": 'webhook'
     }
-
-
-@app.route('/structure', methods=['POST'])
-def structure():
-    """
-    if(DB에 없으면)
-        DB 생성
-    country = req['queryResult']['parameters']['country']
-    ingredient = req['queryResult']['parameters']['ingredient']
-    temperature = req['queryResult']['parameters']['temperature']
-    spicy = req['queryResult']['parameters']['spicy']
-    simple = req['queryResult']['parameters']['simple']
-
-
-    """
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,23 +6,25 @@ import {
   TouchableOpacity,
   SafeAreaView,
 } from "react-native";
+import { AuthContext } from "../App";
 
 const MainScreen = ({ navigation }) => {
+  const { signOut } = useContext(AuthContext);
   function onStart() {
     navigation.navigate("Chat");
   }
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.titleWrapper}>
-        <Text style={styles.title1}>뭐먹을까</Text>
-        <Text style={styles.title2}>아무거나</Text>
+        <Text style={styles.title1}>뭐먹을까?</Text>
+        <Text style={styles.title2}>아무거나!</Text>
       </View>
       <View style={styles.buttonWrapper}>
         <TouchableOpacity style={styles.startButton} onPress={onStart}>
-          <Text style={styles.startButtonText}>START</Text>
+          <Text style={styles.startButtonText}>시작</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.helpButton}>
-          <Text style={styles.helpButtonText}>Help</Text>
+        <TouchableOpacity style={styles.helpButton} onPress={signOut}>
+          <Text style={styles.helpButtonText}>로그아웃</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -74,7 +76,7 @@ const styles = StyleSheet.create({
   },
   startButtonText: {
     color: "white",
-    fontSize: 25,
+    fontSize: 27,
   },
   helpButtonText: {
     fontSize: 25,

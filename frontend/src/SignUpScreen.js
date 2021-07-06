@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,13 +7,15 @@ import {
   SafeAreaView,
   TextInput,
 } from "react-native";
+import { AuthContext } from "../App";
 
 const SignUpScreen = ({ navigation }) => {
-  //const { signUp } = React.useContext(AuthContext);
+  const { signUp } = useContext(AuthContext);
   const [username, setUsername] = useState("");
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [repassword, setRepassword] = useState("");
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.title}>
@@ -61,10 +63,9 @@ const SignUpScreen = ({ navigation }) => {
         <View style={styles.buttons}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>
-              //signUp({ username, password })}
-              {}
-            }
+            onPress={() => {
+              signUp({ userId, username, password, repassword });
+            }}
           >
             <Text style={styles.buttonText}>회원가입</Text>
           </TouchableOpacity>

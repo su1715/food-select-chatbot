@@ -77,7 +77,7 @@ export default function App({ navigation }) {
         };
         if (userId && password) {
           console.log("signin");
-          fetch("https://212bf890ad8c.ngrok.io/signin", signin_info)
+          fetch("https://22c6e6291492.ngrok.io/signin", signin_info)
             .then((response) => response.json())
             .then((response) => {
               if (response.result === "success") {
@@ -115,7 +115,7 @@ export default function App({ navigation }) {
           password === repassword
         ) {
           console.log("signin");
-          fetch("https://212bf890ad8c.ngrok.io/signup", signup_info)
+          fetch("https://22c6e6291492.ngrok.io/signup", signup_info)
             .then((response) => response.json())
             .then((response) => {
               if (response.result === "success") {

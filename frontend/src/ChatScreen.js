@@ -7,8 +7,7 @@ import {
   SafeAreaView,
 } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
-//import { Dialogflow_V2 } from "react-native-dialogflow";
-import { dialogflowConfig } from "../env";
+import { url } from "../env";
 
 const ChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
@@ -28,42 +27,38 @@ const ChatScreen = ({ navigation }) => {
     ]);
   }, []);
 
-  // useEffect(() => {
-  //   Dialogflow_V2.setConfiguration(
-  //     dialogflowConfig.client_email,
-  //     dialogflowConfig.private_key,
-  //     Dialogflow_V2.LANG_KOREAN,
-  //     dialogflowConfig.project_id
-  //   );
-  // }, []);
+  const onSend = useCallback(
+    (messages = []) => {
+      setMessages((previousMessages) =>
+        GiftedChat.append(previousMessages, messages)
+      );
+      const message_info = {
+        method: "POST",
+        body: JSON.stringify({ message: messages[0] }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+      fetch(url + "/message", message_info)
+        .then((response) => response.json())
+        .then((response) => {
+          if (response.result === "success") sendBotResponse(response.reply);
+          else alert("ChatScreen.js | line 42 fetch");
+        });
+    },
+    [messages]
+  );
 
-  // const handleGoogleResponse = (result) => {
-  //   let text =
-  //     result.queryResult.fulfillmentText || "handleGoogleResponse error";
-  //   sendBotResponse(text);
-  // };
-
-  // const sendBotResponse = (text) => {
-  //   let msg = {
-  //     _id: messages.length + 2,
-  //     text,
-  //     createdAt: new Date(),
-  //     user: BOT_USER,
-  //   };
-  //   setMessages((previousMessages) => GiftedChat.append(previousMessages, msg));
-  // };
-
-  const onSend = useCallback((messages = []) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, messages)
-    );
-    // console.log("send:", messages[0].text);
-    // Dialogflow_V2.requestQuery(
-    //   messages[0].text,
-    //   (result) => handleGoogleResponse(result),
-    //   (error) => console.dir(error)
-    // );
-  }, []);
+  const sendBotResponse = (text) => {
+    let msg = {
+      _id: messages.length + 2,
+      text,
+      createdAt: new Date(),
+      user: BOT_USER,
+    };
+    console.log("sendBotResponse");
+    setMessages((previousMessages) => GiftedChat.append(previousMessages, msg));
+  };
 
   function onBack() {
     navigation.navigate("Main");

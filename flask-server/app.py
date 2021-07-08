@@ -13,13 +13,52 @@ app.config.update(
     JWT_SECRET_KEY="food-selector"
 )
 jwt = JWTManager(app)
+project_id = "newagent-rrpl"
+session_id = "newagent-rrpl"
+credential_path = 'C:\\Users\\pcrys\\Desktop\\food_git\\food-select-chatbot\\frontend\\newagent-rrpl-cc1bf222c237.json'
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
+# Dialogflow API
+
+
+def detect_intent_texts(project_id, session_id, texts, language_code):
+    """Returns the result of detect intent with texts as inputs.
+    Using the same `session_id` between requests allows continuation
+    of the conversation."""
+    from google.cloud import dialogflow
+
+    session_client = dialogflow.SessionsClient()
+    session = session_client.session_path(project_id, session_id)
+    print("Session path: {}\n".format(session))
+
+    for text in texts:
+        text_input = dialogflow.TextInput(
+            text=text['text'], language_code=language_code)
+
+        query_input = dialogflow.QueryInput(text=text_input)
+
+        response = session_client.detect_intent(
+            request={"session": session, "query_input": query_input}
+        )
+
+        print("=" * 20)
+        print("Query text: {}".format(response.query_result.query_text))
+        print(
+            "Detected intent: {} (confidence: {})\n".format(
+                response.query_result.intent.display_name,
+                response.query_result.intent_detection_confidence,
+            )
+        )
+        print("Fulfillment text: {}\n".format(
+            response.query_result.fulfillment_text))
+
+        return jsonify(result="success", reply=response.query_result.fulfillment_text)
+
 # default route
 
 
 @app.route('/')
 def index():
-    print("hello")
-    return 'Hello World..........'
+    return "Hello"
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -72,9 +111,18 @@ def signin():
         else:
             return jsonify(result="fail", error="계정정보가 일치하지 않습니다.")
 
+
+@app.route('/message', methods=['POST'])
+def message():
+    texts = []
+    data = request.get_json(force=True)
+    message = data['message']
+    print(message)
+    texts.append(message)
+    return detect_intent_texts(project_id, session_id, texts, "ko")
+
+
 # create a route for webhook
-
-
 @app.route('/webhook', methods=['POST'])
 def webhook():
     req = request.get_json(force=True)

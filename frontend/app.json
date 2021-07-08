@@ -17,12 +17,7 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSSpeechRecognitionUsageDescription": "",
-        "NSMicrophoneUsageDescription":"",
-        "UIRequiredDeviceCapabilities":""
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {

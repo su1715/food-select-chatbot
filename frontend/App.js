@@ -7,6 +7,7 @@ import ChatScreen from "./src/ChatScreen";
 import AuthScreen from "./src/AuthScreen";
 import SignInScreen from "./src/SignInScreen";
 import SignUpScreen from "./src/SignUpScreen";
+import { url } from "./env";
 
 const Stack = createStackNavigator();
 export const AuthContext = React.createContext();
@@ -77,7 +78,7 @@ export default function App({ navigation }) {
         };
         if (userId && password) {
           console.log("signin");
-          fetch("https://22c6e6291492.ngrok.io/signin", signin_info)
+          fetch(url + "/signin", signin_info)
             .then((response) => response.json())
             .then((response) => {
               if (response.result === "success") {
@@ -115,7 +116,7 @@ export default function App({ navigation }) {
           password === repassword
         ) {
           console.log("signin");
-          fetch("https://22c6e6291492.ngrok.io/signup", signup_info)
+          fetch(url + "/signup", signup_info)
             .then((response) => response.json())
             .then((response) => {
               if (response.result === "success") {

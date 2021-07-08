@@ -2,6 +2,7 @@ node_modules/
 .expo/
 npm-debug.*
 env.js
+newagent-rrpl-cc1bf222c237.json
 *.jks
 *.p8
 *.p12

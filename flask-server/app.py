@@ -15,7 +15,7 @@ app.config.update(
 jwt = JWTManager(app)
 project_id = "newagent-rrpl"
 session_id = "newagent-rrpl"
-credential_path = 'C:\\Users\\pcrys\\Desktop\\food_git\\food-select-chatbot\\frontend\\newagent-rrpl-cc1bf222c237.json'
+credential_path = 'C:\\Users\\yaeli\\OneDrive\\바탕 화면\\졸작\\food-select-chatbot\\frontend\\newagent-rrpl-83f01b1bf6b7.json'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 # Dialogflow API
 

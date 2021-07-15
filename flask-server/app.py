@@ -5,6 +5,7 @@ from flask import Flask, request, make_response, jsonify, url_for, render_templa
 from flask_jwt_extended import *
 from models import db
 from models import User
+from path import credential_path
 
 # initialize the flask app
 app = Flask(__name__)
@@ -15,8 +16,9 @@ app.config.update(
 jwt = JWTManager(app)
 project_id = "newagent-rrpl"
 session_id = "newagent-rrpl"
-credential_path = 'C:\\Users\\pcrys\\Desktop\\food_git\\food-select-chatbot\\frontend\\newagent-rrpl-cc1bf222c237.json'
+#credential_path = 'C:\\Users\\pcrys\\Desktop\\food_git\\food-select-chatbot\\frontend\\newagent-rrpl-cc1bf222c237.json'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
+
 # Dialogflow API
 
 
@@ -76,7 +78,6 @@ def signup():
             return jsonify(result="fail", error="모두 입력해주세요.")
         elif password != repassword:
             return jsonify(result="fail", error="비밀번호 확인이 일치하지 않습니다.")
-            # TODO: 원래 있는 아이디인지 확인하기
         else:  # 모두 입력이 정상적으로 되었다면 밑에명령실행(DB에 입력됨)
             cnt = User.query.filter_by(userid=userId).count()
             if(cnt > 0):

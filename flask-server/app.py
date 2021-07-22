@@ -7,9 +7,6 @@ from models import db
 from models import User
 from path import credential_path
 
-a = 1 
-b = 2
-c = 3
 # initialize the flask app
 app = Flask(__name__)
 app.config.update(

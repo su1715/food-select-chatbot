@@ -7,7 +7,7 @@ from models import db
 from models import User
 from path import credential_path
 
-a = 1 
+a = 1
 b = 2
 c = 3
 # initialize the flask app
@@ -137,7 +137,7 @@ def webhook():
     spicy = req['queryResult']['parameters']['spicy']
     simple = req['queryResult']['parameters']['simple']
     return {
-        "fulfillmentText": country+ingredient+temperature+spicy+simple+' 음식 준비해드리겠습니다',
+        "fulfillmentText": country+temperature+spicy+simple+ingredient+' 음식 준비해드리겠습니다',
         "source": 'webhook'
     }
 

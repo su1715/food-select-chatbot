@@ -1,15 +1,13 @@
 import urllib
 import json
 import os
+
 from flask import Flask, request, make_response, jsonify, url_for, render_template, redirect
 from flask_jwt_extended import *
 from models import db
 from models import User
 from path import credential_path
 
-a = 1
-b = 2
-c = 3
 # initialize the flask app
 app = Flask(__name__)
 app.config.update(

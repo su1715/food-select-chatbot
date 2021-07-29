@@ -10,7 +10,7 @@ with open('fooddic_new.csv', 'r',encoding='UTF-8') as file :
         if no_records==0:
             connection.commit()
         else:
-            cursor.execute('''INSERT into foodDicTable values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', row.split(","))
+            cursor.execute('''INSERT into foodDicTable values(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''', row.split(","))
             connection.commit()
         no_records += 1
 connection.close()

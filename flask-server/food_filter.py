@@ -103,7 +103,7 @@ def search():
 def food_filter(country, temperature, spicy, simple, ingredient):
     where = stringify_where(country, temperature, spicy, simple, ingredient)
     queryFoodnames(where)
-    search()  # 아직은 queryIndexnum 과 상관 없이 족발 검색
+    search()  # 아직은 queryIndexnum 과 상관 없이 족발 검색!
 
 
 food_filter("한식", "따뜻한", "", "", "")

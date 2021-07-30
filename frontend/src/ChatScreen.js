@@ -8,13 +8,28 @@ import {
 } from "react-native";
 import { GiftedChat } from "react-native-gifted-chat";
 import { url } from "../env";
+import * as Location from "expo-location";
 
 const ChatScreen = ({ navigation }) => {
   const [messages, setMessages] = useState([]);
+  const [latitude, setLatitude] = useState();
+  const [longitude, setLongitude] = useState();
   const BOT_USER = {
     _id: 2,
     name: "Food Bot",
     avatar: "https://i.imgur.com/7k12EPD.png",
+  };
+  const getLocation = async () => {
+    try {
+      //TODO:위치 찾는 동안 로딩화면 띄우기
+      await Location.requestForegroundPermissionsAsync();
+      const location = await Location.getCurrentPositionAsync();
+      setLatitude(location.coords.latitude);
+      setLongitude(location.coords.longitude);
+      console.log(latitude, longitude);
+    } catch (error) {
+      alert("위치 정보를 찾을 수 없습니다.");
+    }
   };
   useEffect(() => {
     setMessages([
@@ -25,6 +40,7 @@ const ChatScreen = ({ navigation }) => {
         user: BOT_USER,
       },
     ]);
+    getLocation();
   }, []);
 
   const onSend = useCallback(
@@ -34,7 +50,10 @@ const ChatScreen = ({ navigation }) => {
       );
       const message_info = {
         method: "POST",
-        body: JSON.stringify({ message: messages[0] }),
+        body: JSON.stringify({
+          message: messages[0],
+          location: { latitude: latitude, longitude: longitude },
+        }),
         headers: {
           "Content-Type": "application/json",
         },

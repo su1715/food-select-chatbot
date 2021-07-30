@@ -5,7 +5,6 @@ import json
 
 def stringify_where(country, temperature, spicy, simple, ingredient):
     where = ""
-    # ex) country 가 한식인 경우 where에 korea = 0 AND 추가
     # country
     if(country == "한식"):
         where = where+"korea = 1 AND "
@@ -16,13 +15,13 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
     elif(country == "양식"):
         where = where+"occident = 1 AND "
     # elif(country == "베트남식"):
-    #     where = where+"occident = 1 AND"
+    #     where = where+"occident = 1 AND "
     # elif(country == "태국식"):
-    #     where = where+"occident = 1 AND"
+    #     where = where+"occident = 1 AND "
     # elif(country == "멕시코식"):
-    #     where = where+"occident = 1 AND"
+    #     where = where+"occident = 1 AND "
     # elif(country == "터키식"):
-    #     where = where+"occident = 1 AND"
+    #     where = where+"occident = 1 AND "
 
     # temperature
     if(temperature == "따뜻한"):
@@ -45,7 +44,6 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
         where = where + "bread = 1"
     elif(ingredient == "밥"):
         where = where + "rice = 1"
-
     elif(ingredient == "면"):
         where = where + "noodle = 1"
     elif(ingredient == "떡"):
@@ -58,32 +56,34 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
         where = where + "sea_f = 1"
     elif(ingredient == "국"):
         where = where + "soup = 1"
+
     elif(ingredient == ""):  # AND 자르기
         where = where[0:-4]
 
     return where
 
 
-def queryFoodnames(where):
+def queryFoodnames(where, latitude, longitude):
     connection = sqlite3.connect("foodDic.db")
     cursor = connection.cursor()
     cursor.execute("SELECT name FROM foodDicTable WHERE "+where)
     names = cursor.fetchall()
     # TODO: 해당하는 음식이 없을때 출력고려하기
-    for name in names:  # TODO: 우선순위 고려해서 다음테이블로 검색,,,,
+    for name in names:
         print(name[0])
+    # if(len(names) > 3):
+    #     for i in range(3):
+    #         search(names[i][0], latitude, longitude)
+    # else:
+    #     for name in names:  # TODO: 우선순위 고려해서 다음테이블로 검색,,,,
+    #         search(name[0], latitude, longitude)
 
     connection.close()
 
 
-def getLocation():
-    return 37.516420499999995, 127.11512619999999
-
-
-def search():
-    latNlon = []
-    latNlon = getLocation()
-    queryString = "족발"
+def search(queryString, latitude, longitude):
+    latNlon = [latitude, longitude]
+    #latNlon = getLocation()
     url = 'https://dapi.kakao.com/v2/local/search/keyword.json'
     params = {
         "category_group_code": "FD6",
@@ -96,14 +96,13 @@ def search():
     headers = {"Authorization": "KakaoAK b9c2719470566bad75cd57b575bd57e4"}
     places = requests.get(url, headers=headers, params=params).json()[
         'documents']
-    for place in places:
-        print(place)
+    # for place in places:
+    #     print(place)
+    return places[0]
 
 
-def food_filter(country, temperature, spicy, simple, ingredient):
+def filter(country, temperature, spicy, simple, ingredient, latitude, longitude):
     where = stringify_where(country, temperature, spicy, simple, ingredient)
-    queryFoodnames(where)
-    search()  # 아직은 queryIndexnum 과 상관 없이 족발 검색!
-
-
-food_filter("한식", "따뜻한", "", "", "")
+    queryFoodnames(where, float(latitude), float(longitude))
+    # 아직은 queryIndexnum 과 상관 없이 족발 검색!
+    return search("족발", float(latitude), float(longitude))

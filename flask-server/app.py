@@ -17,17 +17,12 @@ app.config.update(
 jwt = JWTManager(app)
 project_id = "newagent-rrpl"
 session_id = "newagent-rrpl"
-#credential_path = 'C:\\Users\\pcrys\\Desktop\\food_git\\food-select-chatbot\\frontend\\newagent-rrpl-cc1bf222c237.json'
-#credential_path = 'C:\\Users\\yaeli\\OneDrive\\바탕 화면\\졸작\\food-select-chatbot\\frontend\\newagent-rrpl-83f01b1bf6b7.json'
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
 # Dialogflow API
 
 
-def detect_intent_texts(project_id, session_id, texts, language_code):
-    """Returns the result of detect intent with texts as inputs.
-    Using the same `session_id` between requests allows continuation
-    of the conversation."""
+def detect_intent_texts(project_id, session_id, texts, language_code, location):
     from google.cloud import dialogflow
 
     session_client = dialogflow.SessionsClient()
@@ -35,6 +30,8 @@ def detect_intent_texts(project_id, session_id, texts, language_code):
     print("Session path: {}\n".format(session))
 
     for text in texts:
+        text['text'] += str(location['latitude'])+" " + \
+            str(location['longitude'])
         text_input = dialogflow.TextInput(
             text=text['text'], language_code=language_code)
 
@@ -120,22 +117,35 @@ def message():
     texts = []
     data = request.get_json(force=True)
     message = data['message']
-    print(message)
+    location = data['location']
+    print("메세지: {} \n위치: {}".format(message['text'], location))
     texts.append(message)
-    return detect_intent_texts(project_id, session_id, texts, "ko")
+    return detect_intent_texts(project_id, session_id, texts, "ko", location)
 
 
 # create a route for webhook
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    from food_filter import filter
+
     req = request.get_json(force=True)
     country = req['queryResult']['parameters']['country']
     ingredient = req['queryResult']['parameters']['ingredient']
     temperature = req['queryResult']['parameters']['temperature']
     spicy = req['queryResult']['parameters']['spicy']
     simple = req['queryResult']['parameters']['simple']
+    ingredient = req['queryResult']['parameters']['ingredient']
+    latitude = req['queryResult']['parameters']['latitude']
+    longitude = req['queryResult']['parameters']['longitude']
+    restaurant = filter(country, temperature, spicy, simple,
+                        ingredient, latitude, longitude)
+    print(restaurant)
+    fulfillmentText = "{}\n{}\n{}".format(
+        restaurant['place_name'], restaurant['road_address_name'], restaurant['place_url'])
+    print(fulfillmentText)
     return {
-        "fulfillmentText": country+temperature+spicy+simple+ingredient+' 음식 준비해드리겠습니다',
+        # "fulfillmentText": country+temperature+spicy+simple+ingredient+' 음식 준비해드리겠습니다',
+        "fulfillmentText": fulfillmentText,
         "source": 'webhook'
     }
 

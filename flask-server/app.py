@@ -44,15 +44,21 @@ def detect_intent_texts(project_id, session_id, texts, language_code, location):
         print("=" * 20)
         print("Query text: {}".format(response.query_result.query_text))
         print(
-            "Detected intent: {} (confidence: {})\n".format(
+            "Detected intent: {} (confidence: {})".format(
                 response.query_result.intent.display_name,
                 response.query_result.intent_detection_confidence,
             )
         )
-        print("Fulfillment text: {}\n".format(
-            response.query_result.fulfillment_text))
+        # print("Fulfillment text: {}".format(
+        #     response.query_result.fulfillment_text))
+        # print("Fulfillment messages: {}".format(
+        #     response.query_result.fulfillment_messages))
 
-        return jsonify(result="success", reply=response.query_result.fulfillment_text)
+        reply = []
+        for message in response.query_result.fulfillment_messages:
+            reply.append(message.text.text[0])
+
+        return jsonify(result="success", reply=reply)
 
 # default route
 
@@ -137,15 +143,12 @@ def webhook():
     ingredient = req['queryResult']['parameters']['ingredient']
     latitude = req['queryResult']['parameters']['latitude']
     longitude = req['queryResult']['parameters']['longitude']
-    restaurant = filter(country, temperature, spicy, simple,
-                        ingredient, latitude, longitude)
-    print(restaurant)
-    fulfillmentText = "{}\n{}\n{}".format(
-        restaurant['place_name'], restaurant['road_address_name'], restaurant['place_url'])
-    print(fulfillmentText)
+    print("parameter:{} {} {} {} {} {} {} {}".format(country, ingredient,
+          temperature, spicy, simple, ingredient, latitude, longitude))
+    fulfillmentMessages = filter(country, temperature, spicy, simple,
+                                 ingredient, latitude, longitude)
     return {
-        # "fulfillmentText": country+temperature+spicy+simple+ingredient+' 음식 준비해드리겠습니다',
-        "fulfillmentText": fulfillmentText,
+        "fulfillmentMessages": fulfillmentMessages,
         "source": 'webhook'
     }
 

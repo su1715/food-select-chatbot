@@ -63,6 +63,14 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
     return where
 
 
+def makeDic(string):
+    dic = {}
+    dic["text"] = {}
+    dic["text"]["text"] = []
+    dic["text"]["text"].append(string)
+    return dic
+
+
 def queryFoodnames(where, latitude, longitude):
     connection = sqlite3.connect("foodDic.db")
     cursor = connection.cursor()
@@ -71,14 +79,23 @@ def queryFoodnames(where, latitude, longitude):
     # TODO: 해당하는 음식이 없을때 출력고려하기
     for name in names:
         print(name[0])
-    # if(len(names) > 3):
-    #     for i in range(3):
-    #         search(names[i][0], latitude, longitude)
-    # else:
-    #     for name in names:  # TODO: 우선순위 고려해서 다음테이블로 검색,,,,
-    #         search(name[0], latitude, longitude)
+    fulfillmentMessages = []
+    if(len(names) > 3):
+        for i in range(3):
+            dic = makeDic(search(names[i][0], latitude, longitude))
+            fulfillmentMessages.append(dic)
+    else:
+        for name in names:  # TODO: 우선순위 고려해서 다음테이블로 검색,,,,
+            dic = makeDic(search(name[0], latitude, longitude))
+            fulfillmentMessages.append(dic)
 
     connection.close()
+    return fulfillmentMessages
+
+
+def formatting(placeObj):
+    return "\n{}\n{}\n{}\n".format(
+        placeObj['place_name'], placeObj['road_address_name'], placeObj['place_url'])
 
 
 def search(queryString, latitude, longitude):
@@ -90,19 +107,19 @@ def search(queryString, latitude, longitude):
         "x": str(latNlon[1]),
         "y": str(latNlon[0]),
         "radius": "2000",
-        "sort": "distance",
+        "sort": "accuracy",
         "query": queryString
     }
     headers = {"Authorization": "KakaoAK b9c2719470566bad75cd57b575bd57e4"}
     places = requests.get(url, headers=headers, params=params).json()[
         'documents']
-    # for place in places:
-    #     print(place)
-    return places[0]
+    text = "{} 추천해드리겠습니다.\n".format(queryString)
+    for i in range(3):
+        text += formatting(places[i])
+    return text
 
 
 def filter(country, temperature, spicy, simple, ingredient, latitude, longitude):
     where = stringify_where(country, temperature, spicy, simple, ingredient)
-    queryFoodnames(where, float(latitude), float(longitude))
-    # 아직은 queryIndexnum 과 상관 없이 족발 검색!
-    return search("족발", float(latitude), float(longitude))
+    return queryFoodnames(where, float(latitude), float(longitude))
+    # return search("족발", float(latitude), float(longitude))

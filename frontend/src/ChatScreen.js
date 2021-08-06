@@ -69,7 +69,8 @@ const ChatScreen = ({ navigation }) => {
         .then((response) => {
           if (response.result === "success") {
             for (let i = 0; i < response.reply.length; i++) {
-              if (i == 0) sendBotResponse(response.reply[i]);
+              //if (i == 0)
+              sendBotResponse(response.reply[i]);
             }
           } else alert("ChatScreen.js | line 42 fetch");
         });
@@ -79,7 +80,7 @@ const ChatScreen = ({ navigation }) => {
 
   const sendBotResponse = (text) => {
     let msg = {
-      _id: messages.length + 2,
+      _id: Date.now(),
       text,
       createdAt: new Date(),
       user: BOT_USER,

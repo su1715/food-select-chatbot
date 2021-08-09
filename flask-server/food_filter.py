@@ -14,14 +14,14 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
         where = where+"china = 1 AND "
     elif(country == "양식"):
         where = where+"occident = 1 AND "
-    # elif(country == "베트남식"):
-    #     where = where+"occident = 1 AND "
-    # elif(country == "태국식"):
-    #     where = where+"occident = 1 AND "
-    # elif(country == "멕시코식"):
-    #     where = where+"occident = 1 AND "
-    # elif(country == "터키식"):
-    #     where = where+"occident = 1 AND "
+    elif(country == "베트남식"):
+        where = where+"occident = 1 AND "
+    elif(country == "태국식"):
+        where = where+"occident = 1 AND "
+    elif(country == "멕시코식"):
+        where = where+"occident = 1 AND "
+    elif(country == "터키식"):
+        where = where+"occident = 1 AND "
 
     # temperature
     if(temperature == "따뜻한"):
@@ -122,4 +122,3 @@ def search(queryString, latitude, longitude):
 def filter(country, temperature, spicy, simple, ingredient, latitude, longitude):
     where = stringify_where(country, temperature, spicy, simple, ingredient)
     return queryFoodnames(where, float(latitude), float(longitude))
-    # return search("족발", float(latitude), float(longitude))

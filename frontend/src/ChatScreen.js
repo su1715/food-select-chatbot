@@ -10,7 +10,7 @@ import { GiftedChat } from "react-native-gifted-chat";
 import { url } from "../env";
 import * as Location from "expo-location";
 
-const ChatScreen = ({ navigation }) => {
+const ChatScreen = ({ navigation, route }) => {
   React.useCallback(() => {
     console.log("messages:", messages);
   }, [messages]);
@@ -59,6 +59,7 @@ const ChatScreen = ({ navigation }) => {
             latitude: latitude,
             longitude: longitude,
           },
+          userId: route.params.token || "test",
         }),
         headers: {
           "Content-Type": "application/json",

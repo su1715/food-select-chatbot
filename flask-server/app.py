@@ -5,6 +5,7 @@ import sqlite3
 from sqlite3.dbapi2 import connect
 from flask import Flask, request, make_response, jsonify, url_for, render_template, redirect
 from flask_jwt_extended import *
+from google.cloud.dialogflow_v2.types import session
 from path import credential_path
 
 # initialize the flask app
@@ -29,6 +30,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code, location):
     print("Session path: {}\n".format(session))
 
     for text in texts:
+        text['text'] += " "
         text['text'] += str(location['latitude'])+" " + \
             str(location['longitude'])
         text_input = dialogflow.TextInput(
@@ -97,9 +99,8 @@ def signup():
                 print("userInfo has been inserted.")
                 conn.commit()
                 conn.close()
-                access_token = create_access_token(
-                    identity=userId, expires_delta=False)
-                return jsonify(result="success", token=access_token)
+                #access_token = create_access_token(identity=userId, expires_delta=False)
+                return jsonify(result="success", token=userId)
 
 
 @app.route('/signin', methods=['GET', 'POST'])
@@ -118,9 +119,8 @@ def signin():
         conn.commit()
         conn.close()
         if cnt:
-            access_token = create_access_token(
-                identity=userId, expires_delta=False)
-            return jsonify(result="success", token=access_token)
+            #access_token = create_access_token(identity=userId, expires_delta=False)
+            return jsonify(result="success", token=userId)
         else:
             return jsonify(result="fail", error="계정정보가 일치하지 않습니다.")
 
@@ -131,8 +131,11 @@ def message():
     data = request.get_json(force=True)
     message = data['message']
     location = data['location']
-    print("메세지: {} \n위치: {}".format(message['text'], location))
+    userId = data['userId']
+    print("아이디:{} \n메세지: {} \n위치: {}".format(
+        userId, message['text'], location))
     texts.append(message)
+    session_id = userId
     return detect_intent_texts(project_id, session_id, texts, "ko", location)
 
 
@@ -142,16 +145,21 @@ def webhook():
     from food_filter import filter
 
     req = request.get_json(force=True)
+    userId = req['session'].split('/')[-1]
     country = req['queryResult']['parameters']['country']
     ingredient = req['queryResult']['parameters']['ingredient']
     temperature = req['queryResult']['parameters']['temperature']
     spicy = req['queryResult']['parameters']['spicy']
     simple = req['queryResult']['parameters']['simple']
-    ingredient = req['queryResult']['parameters']['ingredient']
     latitude = req['queryResult']['parameters']['latitude']
     longitude = req['queryResult']['parameters']['longitude']
-    print("parameter:{} {} {} {} {} {} {} {}".format(country, ingredient,
-          temperature, spicy, simple, ingredient, latitude, longitude))
+    if(isinstance(latitude, list)):
+        latitude = latitude[0]
+    if(isinstance(longitude, list)):
+        longitude = longitude[0]
+    print("session:{}".format(userId))
+    print("parameter:{} {} {} {} {} {} {}".format(
+        country, ingredient, temperature, spicy, simple,  latitude, longitude))
     fulfillmentMessages = filter(country, temperature, spicy, simple,
                                  ingredient, latitude, longitude)
     return {

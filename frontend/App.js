@@ -174,6 +174,7 @@ export default function App({ navigation }) {
                 options={{
                   headerShown: false,
                 }}
+                initialParams={{ token: state.userToken }}
               />
             </>
           )}

@@ -12,7 +12,7 @@ sql = """
 """
 
 cur.execute(sql)
-print("User has been created.")
+print("User table has been created.")
 
 conn.commit()
 conn.close()

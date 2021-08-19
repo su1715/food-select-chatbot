@@ -7,10 +7,21 @@ import {
   SafeAreaView,
 } from "react-native";
 import { AuthContext } from "../App";
+import { url } from "../env";
 
-const MainScreen = ({ navigation }) => {
+const MainScreen = ({ navigation, route }) => {
   const { signOut } = useContext(AuthContext);
   function onStart() {
+    const message_info = {
+      method: "POST",
+      body: JSON.stringify({
+        userId: route.params.token || "test",
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    };
+    fetch(url + "/delete_info", message_info);
     navigation.navigate("Chat");
   }
   return (

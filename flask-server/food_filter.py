@@ -71,28 +71,6 @@ def makeDic(string):
     return dic
 
 
-def queryFoodnames(where, latitude, longitude):
-    connection = sqlite3.connect("foodDic.db")
-    cursor = connection.cursor()
-    cursor.execute("SELECT name FROM foodDicTable WHERE "+where)
-    names = cursor.fetchall()
-    # TODO: 해당하는 음식이 없을때 출력고려하기
-    for name in names:
-        print(name[0])
-    fulfillmentMessages = []
-    if(len(names) > 3):
-        for i in range(3):
-            dic = makeDic(search(names[i][0], latitude, longitude))
-            fulfillmentMessages.append(dic)
-    else:
-        for name in names:  # TODO: 우선순위 고려해서 다음테이블로 검색,,,,
-            dic = makeDic(search(name[0], latitude, longitude))
-            fulfillmentMessages.append(dic)
-
-    connection.close()
-    return fulfillmentMessages
-
-
 def formatting(placeObj):
     return "\n{}\n{}\n{}\n".format(
         placeObj['place_name'], placeObj['road_address_name'], placeObj['place_url'])
@@ -115,10 +93,50 @@ def search(queryString, latitude, longitude):
         'documents']
     text = "{} 추천해드리겠습니다.\n".format(queryString)
     for i in range(3):
-        text += formatting(places[i])
+        if(len(places) > i):
+            text += formatting(places[i])
+        else:
+            text += queryString + "에 대한 결과가 더이상 없습니다."
+            break
     return text
 
 
-def filter(country, temperature, spicy, simple, ingredient, latitude, longitude):
+def queryFoodnames(userId, search_index, where, latitude, longitude):
+    connection = sqlite3.connect("foodDic.db")
+    cursor = connection.cursor()
+    cursor.execute("SELECT name FROM foodDicTable WHERE " + where)
+    names = cursor.fetchall()
+    # TODO: 해당하는 음식이 없을때 출력고려하기
+    # TODO: index 끝까지 했을때 고려하기
+    for name in names:
+        print(name[0])
+    fulfillmentMessages = []
+    if (search_index == -1):
+        fulfillmentMessages.append(makeDic("새로운 대화를 시작해주세요."))
+        connection.close()
+        return fulfillmentMessages
+
+    for i in range(search_index, search_index + 3):
+        if(i >= len(names)):
+            break
+        dic = makeDic(search(names[i][0], latitude, longitude))
+        fulfillmentMessages.append(dic)
+
+    if(i >= len(names)):
+        fulfillmentMessages.append(
+            makeDic("더 이상 검색 결과가 없습니다. 새로운 대화를 시작해주세요."))
+        search_index = -1
+    else:
+        search_index += 3
+    cursor.execute(
+        "UPDATE User_history SET search_index = ? WHERE userid = ?", (search_index, userId,))
+
+    connection.commit()
+    connection.close()
+    return fulfillmentMessages
+
+
+def filter(userId, search_index, country, temperature, spicy, simple, ingredient, latitude, longitude):
+    print("In filter, latitude:{}, longitude:{}".format(latitude, longitude))
     where = stringify_where(country, temperature, spicy, simple, ingredient)
-    return queryFoodnames(where, float(latitude), float(longitude))
+    return queryFoodnames(userId, search_index, where, float(latitude), float(longitude))

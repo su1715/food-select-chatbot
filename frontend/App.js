@@ -167,6 +167,7 @@ export default function App({ navigation }) {
                 options={{
                   headerShown: false,
                 }}
+                initialParams={{ token: state.userToken }}
               />
               <Stack.Screen
                 name="Chat"

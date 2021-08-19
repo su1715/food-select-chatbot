@@ -26,13 +26,11 @@ def detect_intent_texts(project_id, session_id, texts, language_code, location):
     from google.cloud import dialogflow
 
     session_client = dialogflow.SessionsClient()
+    session_id += "+{}+{}".format(location['latitude'], location['longitude'])
     session = session_client.session_path(project_id, session_id)
     print("Session path: {}\n".format(session))
 
     for text in texts:
-        text['text'] += " "
-        text['text'] += str(location['latitude'])+" " + \
-            str(location['longitude'])
         text_input = dialogflow.TextInput(
             text=text['text'], language_code=language_code)
 
@@ -67,6 +65,18 @@ def detect_intent_texts(project_id, session_id, texts, language_code, location):
 @app.route('/')
 def index():
     return "Hello"
+
+
+@app.route('/delete_info', methods=['GET', 'POST'])
+def delete():
+    conn = sqlite3.connect("foodDic.db")
+    cur = conn.cursor()
+    data = request.get_json(force=True)
+    userId = data['userId']
+    cur.execute("DELETE FROM User_history WHERE userid=?", (userId,))
+    conn.commit()
+    conn.close()
+    return jsonify(result="delete")
 
 
 @app.route('/signup', methods=['GET', 'POST'])
@@ -142,26 +152,123 @@ def message():
 # create a route for webhook
 @app.route('/webhook', methods=['POST'])
 def webhook():
+    print("=======webhook=======")
     from food_filter import filter
+    conn = sqlite3.connect("foodDic.db")
+    cur = conn.cursor()
 
     req = request.get_json(force=True)
-    userId = req['session'].split('/')[-1]
-    country = req['queryResult']['parameters']['country']
-    ingredient = req['queryResult']['parameters']['ingredient']
-    temperature = req['queryResult']['parameters']['temperature']
-    spicy = req['queryResult']['parameters']['spicy']
-    simple = req['queryResult']['parameters']['simple']
-    latitude = req['queryResult']['parameters']['latitude']
-    longitude = req['queryResult']['parameters']['longitude']
-    if(isinstance(latitude, list)):
-        latitude = latitude[0]
-    if(isinstance(longitude, list)):
-        longitude = longitude[0]
-    print("session:{}".format(userId))
-    print("parameter:{} {} {} {} {} {} {}".format(
-        country, ingredient, temperature, spicy, simple,  latitude, longitude))
-    fulfillmentMessages = filter(country, temperature, spicy, simple,
+
+    session = req['session'].split('/')[-1]
+    userId = session.split('+')[-3]
+    latitude = float(session.split('+')[-2])
+    longitude = float(session.split('+')[-1])
+    intent = req['queryResult']['intent']['displayName']
+    print("intent:{}".format(intent))
+    # 시작 food_selector
+    """시작
+    """
+    # 다음 next_food
+    """다음
+        파라미터 받는 과정 건너뛰고 저장된 정보로만
+    """
+    # 재시작 restart
+    """재시작
+        user_history에서 user 정보 삭제
+        첫 메세지 다시보내기
+    """
+    if(intent == "restart"):
+        cur.execute("DELETE FROM User_history WHERE userid = ?", (userId,))
+        conn.commit()
+        conn.close()
+        from food_filter import makeDic
+        fulfillmentMessages = []
+        fulfillmentMessages.append(makeDic("어떤 음식을 먹어볼까요?"))
+        return {
+            "fulfillmentMessages": fulfillmentMessages,
+            "source": 'webhook'
+        }
+
+    else:
+        if(intent == "food_selector"):
+            country = req['queryResult']['parameters']['country']
+            ingredient = req['queryResult']['parameters']['ingredient']
+            temperature = req['queryResult']['parameters']['temperature']
+            spicy = req['queryResult']['parameters']['spicy']
+            simple = req['queryResult']['parameters']['simple']
+            print("session:{}, userId:{}, latitude:{}, longitude:{}".format(
+                session, userId, latitude, longitude))
+            print("parameter:{} {} {} {} {} {} {}".format(
+                country, ingredient, temperature, spicy, simple, latitude, longitude))
+
+            # parameter를 받는다
+            # User_history table에 해당 user가 존재하는지 확인한다
+            cnt = cur.execute(
+                "SELECT count(*) From User_history Where userid=?", (userId,)).fetchone()[0]
+            # 존재하는경우
+            if(cnt):
+                # sql 문 따로 만들어줘야함
+                # TODO: last_food_index 처리
+                sql = "Update User_history SET search_index = 0,"
+                params = []
+                if(country):
+                    sql += "country=?,"
+                    params.append(country)
+                if(ingredient):
+                    sql += "ingredient=?,"
+                    params.append(ingredient)
+                if(temperature):
+                    sql += "temperature=?,"
+                    params.append(temperature)
+                if(spicy):
+                    sql += "spicy=?,"
+                    params.append(spicy)
+                if(simple):
+                    sql += "simple=?,"
+                    params.append(simple)
+
+                sql = sql[0:-1]  # 쉼표제거
+                sql += " WHERE userid = ?"
+                params.append(userId)
+
+                # 파라미터 할당 추가
+                params_tuple = tuple(params)
+                cur.execute(sql, params_tuple)
+                conn.commit()
+
+            # 존재하지 않는경우
+            else:
+                cur.execute(
+                    """INSERT INTO User_history VALUES (?,0,?,?,?,?,?)""",
+                    (userId, country, ingredient, temperature, spicy, simple,))
+                conn.commit()
+
+    # User_history table 이용하여 sql 문 만들기
+    cur.execute("""
+        SELECT search_index, country, temperature, spicy, simple, ingredient
+        FROM User_history
+        WHERE userid = ?
+    """, (userId,))
+
+    result = cur.fetchone()
+    print("result:{}".format(result))
+    search_index = result[0]
+    country = result[1]
+    temperature = result[2]
+    spicy = result[3]
+    simple = result[4]
+    ingredient = result[5]
+
+    print("User_history 검색결과---------")
+    print("search_index:{}, country:{}, temperature:{}, spicy:{}, simple:{}, ingredient:{}".format(
+        search_index, country, temperature, spicy, simple, ingredient))
+
+    conn.commit()
+    conn.close()
+
+    fulfillmentMessages = filter(userId, search_index, country, temperature, spicy, simple,
                                  ingredient, latitude, longitude)
+
     return {
         "fulfillmentMessages": fulfillmentMessages,
         "source": 'webhook'

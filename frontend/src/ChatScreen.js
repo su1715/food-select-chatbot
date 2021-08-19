@@ -11,9 +11,8 @@ import { url } from "../env";
 import * as Location from "expo-location";
 
 const ChatScreen = ({ navigation, route }) => {
-  React.useCallback(() => {
-    console.log("messages:", messages);
-  }, [messages]);
+  //TODO: 시작할때 정보삭제 요청 서버에 보내기
+  const FIRST_MSG = "어떤 음식을 먹어볼까요?";
   const [messages, setMessages] = useState([]);
   const [latitude, setLatitude] = useState();
   const [longitude, setLongitude] = useState();
@@ -38,7 +37,7 @@ const ChatScreen = ({ navigation, route }) => {
     setMessages([
       {
         _id: 1,
-        text: "어떤 음식을 먹어볼까요?",
+        text: FIRST_MSG,
         createdAt: new Date(),
         user: BOT_USER,
       },
@@ -73,11 +72,81 @@ const ChatScreen = ({ navigation, route }) => {
               //if (i == 0)
               sendBotResponse(response.reply[i]);
             }
+            sendBotQuick();
           } else alert("ChatScreen.js | line 42 fetch");
         });
     },
     [messages, latitude, longitude]
   );
+
+  const onQuickReply = useCallback(
+    (quickReply = []) => {
+      let text = quickReply[0].value;
+      console.log("text:", text);
+      let msg = {
+        _id: Date.now(),
+        text: quickReply[0].value,
+        createdAt: new Date(),
+        user: {
+          _id: 1,
+        },
+      };
+      setMessages((previousMessages) =>
+        GiftedChat.append(previousMessages, [msg])
+      );
+
+      const message_info = {
+        method: "POST",
+        body: JSON.stringify({
+          message: msg,
+          location: {
+            latitude: latitude,
+            longitude: longitude,
+          },
+          userId: route.params.token || "test",
+        }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      };
+
+      fetch(url + "/message", message_info)
+        .then((response) => response.json())
+        .then((response) => {
+          if (response.result === "success") {
+            for (let i = 0; i < response.reply.length; i++) {
+              sendBotResponse(response.reply[i]);
+            }
+            if (response.reply[0] != FIRST_MSG) sendBotQuick();
+          } else alert("ChatScreen.js | fetch");
+        });
+    },
+    [messages, latitude, longitude]
+  );
+
+  const sendBotQuick = () => {
+    let msg = {
+      _id: Date.now(),
+      text: "어떠신가요? \n조건을 추가하려면 새로운 조건을 입력해주세요",
+      createdAt: new Date(),
+      quickReplies: {
+        type: "radio",
+        keepIt: true,
+        values: [
+          {
+            title: "같은 조건으로 더 보여주세요",
+            value: "다음",
+          },
+          {
+            title: "다시 할래요",
+            value: "재시작",
+          },
+        ],
+      },
+      user: BOT_USER,
+    };
+    setMessages((previousMessages) => GiftedChat.append(previousMessages, msg));
+  };
 
   const sendBotResponse = (text) => {
     let msg = {
@@ -86,8 +155,6 @@ const ChatScreen = ({ navigation, route }) => {
       createdAt: new Date(),
       user: BOT_USER,
     };
-    console.log("msg._id:", msg._id);
-    console.log("msg.text:", msg.text);
     setMessages((previousMessages) => GiftedChat.append(previousMessages, msg));
   };
 
@@ -115,6 +182,7 @@ const ChatScreen = ({ navigation, route }) => {
           messages={messages}
           textInputProps={{ keyboardAppearance: "default", autoCorrect: false }}
           onSend={(messages) => onSend(messages)}
+          onQuickReply={onQuickReply}
           user={{
             _id: 1,
           }}

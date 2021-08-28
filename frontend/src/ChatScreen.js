@@ -11,11 +11,10 @@ import { url } from "../env";
 import * as Location from "expo-location";
 
 const ChatScreen = ({ navigation, route }) => {
-  //TODO: 시작할때 정보삭제 요청 서버에 보내기
-  const FIRST_MSG = "어떤 음식을 먹어볼까요?";
   const [messages, setMessages] = useState([]);
   const [latitude, setLatitude] = useState();
   const [longitude, setLongitude] = useState();
+  const FIRST_MSG = "어떤 음식을 먹어볼까요?";
   const BOT_USER = {
     _id: 2,
     name: "Food Bot",
@@ -23,7 +22,6 @@ const ChatScreen = ({ navigation, route }) => {
   };
   const getLocation = async () => {
     try {
-      //TODO:위치 찾는 동안 로딩화면 띄우기
       await Location.requestForegroundPermissionsAsync();
       const location = await Location.getCurrentPositionAsync();
       setLatitude(location.coords.latitude);
@@ -58,7 +56,7 @@ const ChatScreen = ({ navigation, route }) => {
             latitude: latitude,
             longitude: longitude,
           },
-          userId: route.params.token || "test",
+          userId: route.params.token || "token_error",
         }),
         headers: {
           "Content-Type": "application/json",
@@ -81,8 +79,6 @@ const ChatScreen = ({ navigation, route }) => {
 
   const onQuickReply = useCallback(
     (quickReply = []) => {
-      let text = quickReply[0].value;
-      console.log("text:", text);
       let msg = {
         _id: Date.now(),
         text: quickReply[0].value,

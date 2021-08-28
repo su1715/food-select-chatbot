@@ -121,7 +121,6 @@ const styles = StyleSheet.create({
     height: 45,
     flexDirection: "row",
     justifyContent: "space-around",
-    //backgroundColor: "pink",
   },
   button: {
     width: "30%",

@@ -15,13 +15,15 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
     elif(country == "양식"):
         where = where+"occident = 1 AND "
     elif(country == "베트남식"):
-        where = where+"occident = 1 AND "
+        where = where+"vietnam = 1 AND "
+    elif(country == "대만식"):
+        where = where+"taiwan = 1 AND "
     elif(country == "태국식"):
-        where = where+"occident = 1 AND "
+        where = where+"thailand = 1 AND "
     elif(country == "멕시코식"):
-        where = where+"occident = 1 AND "
+        where = where+"mexico = 1 AND "
     elif(country == "터키식"):
-        where = where+"occident = 1 AND "
+        where = where+"turkey = 1 AND "
 
     # temperature
     if(temperature == "따뜻한"):
@@ -63,7 +65,7 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
     return where
 
 
-def makeDic(string):
+def makeDic(string):  # dialogflow의 fulfillmentMessages 에 맞는 형식(dictionary)으로 바꿈
     dic = {}
     dic["text"] = {}
     dic["text"]["text"] = []
@@ -71,19 +73,17 @@ def makeDic(string):
     return dic
 
 
-def formatting(placeObj):
+def formatting(placeObj):  # 메시지 형식 (상호명, 주소, url)
     return "\n{}\n{}\n{}\n".format(
         placeObj['place_name'], placeObj['road_address_name'], placeObj['place_url'])
 
 
 def search(queryString, latitude, longitude):
-    latNlon = [latitude, longitude]
-    #latNlon = getLocation()
     url = 'https://dapi.kakao.com/v2/local/search/keyword.json'
     params = {
         "category_group_code": "FD6",
-        "x": str(latNlon[1]),
-        "y": str(latNlon[0]),
+        "x": str(longitude),
+        "y": str(latitude),
         "radius": "2000",
         "sort": "accuracy",
         "query": queryString
@@ -106,10 +106,9 @@ def queryFoodnames(userId, search_index, where, latitude, longitude):
     cursor = connection.cursor()
     cursor.execute("SELECT name FROM foodDicTable WHERE " + where)
     names = cursor.fetchall()
-    # TODO: 해당하는 음식이 없을때 출력고려하기
-    # TODO: index 끝까지 했을때 고려하기
-    for name in names:
+    for name in names:  # foodDictable 검색결과 출력
         print(name[0])
+
     fulfillmentMessages = []
     if (search_index == -1):
         fulfillmentMessages.append(makeDic("새로운 대화를 시작해주세요."))
@@ -137,6 +136,5 @@ def queryFoodnames(userId, search_index, where, latitude, longitude):
 
 
 def filter(userId, search_index, country, temperature, spicy, simple, ingredient, latitude, longitude):
-    print("In filter, latitude:{}, longitude:{}".format(latitude, longitude))
     where = stringify_where(country, temperature, spicy, simple, ingredient)
     return queryFoodnames(userId, search_index, where, float(latitude), float(longitude))

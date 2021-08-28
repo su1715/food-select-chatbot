@@ -12,7 +12,7 @@ import { url } from "./env";
 const Stack = createStackNavigator();
 export const AuthContext = React.createContext();
 
-export default function App({ navigation }) {
+export default function App() {
   const [state, dispatch] = React.useReducer(
     (prevState, action) => {
       switch (action.type) {
@@ -44,7 +44,6 @@ export default function App({ navigation }) {
   );
 
   React.useEffect(() => {
-    // Fetch the token from storage then navigate to our appropriate place
     const bootstrapAsync = async () => {
       let userToken;
       try {
@@ -52,22 +51,14 @@ export default function App({ navigation }) {
       } catch (e) {
         // Restoring token failed
       }
-      // After restoring token, we may need to validate it in production apps
-      // This will switch to the App screen or Auth screen and this loading
-      // screen will be unmounted and thrown away.
       dispatch({ type: "RESTORE_TOKEN", token: userToken });
     };
-
     bootstrapAsync();
   }, []);
 
   const authContext = React.useMemo(
     () => ({
       signIn: async (data) => {
-        // In a production app, we need to send some data (usually username, password) to server and get a token
-        // We will also need to handle errors if sign in failed
-        // After getting token, we need to persist the token using `SecureStore`
-        // In the example, we'll use a dummy token
         const { userId, password } = data;
         const signin_info = {
           method: "POST",
@@ -77,7 +68,6 @@ export default function App({ navigation }) {
           },
         };
         if (userId && password) {
-          console.log("signin");
           fetch(url + "/signin", signin_info)
             .then((response) => response.json())
             .then((response) => {
@@ -95,10 +85,6 @@ export default function App({ navigation }) {
         dispatch({ type: "SIGN_OUT" });
       },
       signUp: async (data) => {
-        // In a production app, we need to send user data to server and get a token
-        // We will also need to handle errors if sign up failed
-        // After getting token, we need to persist the token using `SecureStore`
-        // In the example, we'll use a dummy token
         const { userId, username, password, repassword } = data;
         const signup_info = {
           method: "POST",
@@ -115,7 +101,6 @@ export default function App({ navigation }) {
           repassword &&
           password === repassword
         ) {
-          console.log("signin");
           fetch(url + "/signup", signup_info)
             .then((response) => response.json())
             .then((response) => {

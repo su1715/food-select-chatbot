@@ -19,10 +19,9 @@ project_id = "newagent-rrpl"
 session_id = "newagent-rrpl"
 os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = credential_path
 
-# Dialogflow API
-
 
 def detect_intent_texts(project_id, session_id, texts, language_code, location):
+    # Dialogflow API
     from google.cloud import dialogflow
 
     session_client = dialogflow.SessionsClient()
@@ -48,18 +47,12 @@ def detect_intent_texts(project_id, session_id, texts, language_code, location):
                 response.query_result.intent_detection_confidence,
             )
         )
-        # print("Fulfillment text: {}".format(
-        #     response.query_result.fulfillment_text))
-        # print("Fulfillment messages: {}".format(
-        #     response.query_result.fulfillment_messages))
 
         reply = []
         for message in response.query_result.fulfillment_messages:
             reply.append(message.text.text[0])
 
         return jsonify(result="success", reply=reply)
-
-# default route
 
 
 @app.route('/')
@@ -81,75 +74,66 @@ def delete():
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
-    if request.method == 'GET':
-        return "GET으로 입력되었습니다"
-    else:
-        conn = sqlite3.connect("foodDic.db")
-        cur = conn.cursor()
-        data = request.get_json(force=True)
-        userId = data['userId']
-        username = data['username']
-        password = data['password']
-        repassword = data['repassword']
+    conn = sqlite3.connect("foodDic.db")
+    cur = conn.cursor()
+    data = request.get_json(force=True)
+    userId = data['userId']
+    username = data['username']
+    password = data['password']
+    repassword = data['repassword']
 
-        if not (userId and username and password and repassword):
-            return jsonify(result="fail", error="모두 입력해주세요.")
-        elif password != repassword:
-            return jsonify(result="fail", error="비밀번호 확인이 일치하지 않습니다.")
-        else:  # 모두 입력이 정상적으로 되었다면 밑에명령실행(DB에 입력됨)
-            cnt = cur.execute(
-                "SELECT count(*) From User Where userid=?", (userId,)).fetchone()[0]
-            if(cnt > 0):
-                conn.commit()
-                conn.close()
-                return jsonify(result="fail", error="이미 존재하는 아이디 입니다.")
-            else:
-                cur.execute("Insert into User values (?, ?, ?)",
-                            (userId, username, password))
-                print("userInfo has been inserted.")
-                conn.commit()
-                conn.close()
-                #access_token = create_access_token(identity=userId, expires_delta=False)
-                return jsonify(result="success", token=userId)
+    if not (userId and username and password and repassword):
+        return jsonify(result="fail", error="모두 입력해주세요.")
+    elif password != repassword:
+        return jsonify(result="fail", error="비밀번호 확인이 일치하지 않습니다.")
+    else:
+        cnt = cur.execute(
+            "SELECT count(*) From User Where userid=?", (userId,)).fetchone()[0]
+        if(cnt > 0):
+            conn.commit()
+            conn.close()
+            return jsonify(result="fail", error="이미 존재하는 아이디 입니다.")
+        else:
+            cur.execute("Insert into User values (?, ?, ?)",
+                        (userId, username, password))
+            conn.commit()
+            conn.close()
+            return jsonify(result="success", token=userId)
 
 
 @app.route('/signin', methods=['GET', 'POST'])
 def signin():
-    if request.method == 'GET':
-        return "GET으로 입력되었습니다"
+    conn = sqlite3.connect("foodDic.db")
+    cur = conn.cursor()
+    data = request.get_json(force=True)
+    userId = data['userId']
+    password = data['password']
+    # db에 같은 정보 있는지 확인
+    cnt = cur.execute(
+        "SELECT count(*) From User Where userid=? AND password=?", (userId, password,))
+    conn.commit()
+    conn.close()
+    if cnt:
+        return jsonify(result="success", token=userId)
     else:
-        conn = sqlite3.connect("foodDic.db")
-        cur = conn.cursor()
-        data = request.get_json(force=True)
-        userId = data['userId']
-        password = data['password']
-        # db에 같은 정보 있는지 확인
-        cnt = cur.execute(
-            "SELECT count(*) From User Where userid=? AND password=?", (userId, password,))
-        conn.commit()
-        conn.close()
-        if cnt:
-            #access_token = create_access_token(identity=userId, expires_delta=False)
-            return jsonify(result="success", token=userId)
-        else:
-            return jsonify(result="fail", error="계정정보가 일치하지 않습니다.")
+        return jsonify(result="fail", error="계정정보가 일치하지 않습니다.")
 
 
 @app.route('/message', methods=['POST'])
 def message():
-    texts = []
     data = request.get_json(force=True)
     message = data['message']
     location = data['location']
     userId = data['userId']
+    print("=======message=======")
     print("아이디:{} \n메세지: {} \n위치: {}".format(
         userId, message['text'], location))
+    texts = []
     texts.append(message)
     session_id = userId
     return detect_intent_texts(project_id, session_id, texts, "ko", location)
 
 
-# create a route for webhook
 @app.route('/webhook', methods=['POST'])
 def webhook():
     print("=======webhook=======")
@@ -165,18 +149,7 @@ def webhook():
     longitude = float(session.split('+')[-1])
     intent = req['queryResult']['intent']['displayName']
     print("intent:{}".format(intent))
-    # 시작 food_selector
-    """시작
-    """
-    # 다음 next_food
-    """다음
-        파라미터 받는 과정 건너뛰고 저장된 정보로만
-    """
-    # 재시작 restart
-    """재시작
-        user_history에서 user 정보 삭제
-        첫 메세지 다시보내기
-    """
+
     if(intent == "restart"):
         cur.execute("DELETE FROM User_history WHERE userid = ?", (userId,))
         conn.commit()
@@ -208,7 +181,6 @@ def webhook():
             # 존재하는경우
             if(cnt):
                 # sql 문 따로 만들어줘야함
-                # TODO: last_food_index 처리
                 sql = "Update User_history SET search_index = 0,"
                 params = []
                 if(country):
@@ -251,7 +223,6 @@ def webhook():
     """, (userId,))
 
     result = cur.fetchone()
-    print("result:{}".format(result))
     search_index = result[0]
     country = result[1]
     temperature = result[2]
@@ -259,7 +230,7 @@ def webhook():
     simple = result[4]
     ingredient = result[5]
 
-    print("User_history 검색결과---------")
+    print("------- User_history 검색결과 -------")
     print("search_index:{}, country:{}, temperature:{}, spicy:{}, simple:{}, ingredient:{}".format(
         search_index, country, temperature, spicy, simple, ingredient))
 

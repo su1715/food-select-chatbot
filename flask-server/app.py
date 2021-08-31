@@ -1,11 +1,7 @@
-import urllib
-import json
 import os
 import sqlite3
-from sqlite3.dbapi2 import connect
-from flask import Flask, request, make_response, jsonify, url_for, render_template, redirect
+from flask import Flask, request, jsonify
 from flask_jwt_extended import *
-from google.cloud.dialogflow_v2.types import session
 from path import credential_path
 
 # initialize the flask app

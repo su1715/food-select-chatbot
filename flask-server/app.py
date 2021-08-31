@@ -162,6 +162,17 @@ def webhook():
             "source": 'webhook'
         }
 
+    elif(intent == "random"):
+        import random
+        from food_filter import searchDirectry
+        indices = random.sample(range(1, 98), 3)
+        print("indices:", indices)
+        fulfillmentMessages = searchDirectry(indices, latitude, longitude)
+        return {
+            "fulfillmentMessages": fulfillmentMessages,
+            "source": 'webhook'
+        }
+
     else:
         if(intent == "food_selector"):
             country = req['queryResult']['parameters']['country']

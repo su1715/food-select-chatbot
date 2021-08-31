@@ -9,12 +9,15 @@ import {
 import { GiftedChat } from "react-native-gifted-chat";
 import { url } from "../env";
 import * as Location from "expo-location";
+import Spinner from "react-native-loading-spinner-overlay";
 
 const ChatScreen = ({ navigation, route }) => {
   const [messages, setMessages] = useState([]);
   const [latitude, setLatitude] = useState();
   const [longitude, setLongitude] = useState();
   const FIRST_MSG = "어떤 음식을 먹어볼까요?";
+  const FALLBACK_MSG = "제가 제대로 이해하지 못한것 같아요.";
+  const RANDOM_MSG = "랜덤으로 추천해드릴게요!";
   const BOT_USER = {
     _id: 2,
     name: "Food Bot",
@@ -70,7 +73,11 @@ const ChatScreen = ({ navigation, route }) => {
               //if (i == 0)
               sendBotResponse(response.reply[i]);
             }
-            sendBotQuick();
+            if (
+              response.reply[0] != FALLBACK_MSG &&
+              response.reply[0] != RANDOM_MSG
+            )
+              sendBotQuick();
           } else alert("ChatScreen.js | line 42 fetch");
         });
     },
@@ -188,7 +195,11 @@ const ChatScreen = ({ navigation, route }) => {
   } else {
     return (
       <SafeAreaView>
-        <Text>위치정보를 받아오는 중입니다...</Text>
+        <Spinner
+          visible={true}
+          textContent={"위치정보를 받아오는 중입니다..."}
+          textStyle={styles.spinnerTextStyle}
+        />
       </SafeAreaView>
     );
   }
@@ -213,5 +224,8 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 25,
     fontWeight: "500",
+  },
+  spinnerTextStyle: {
+    color: "#FFF",
   },
 });

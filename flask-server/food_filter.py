@@ -24,6 +24,8 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
         where = where+"mexico = 1 AND "
     elif(country == "터키식"):
         where = where+"turkey = 1 AND "
+    elif(country == "동남아식"):
+        where = where+"(taiwan=1 or vietnam=1 or thailand=1) AND "
 
     # temperature
     if(temperature == "따뜻한"):
@@ -96,7 +98,8 @@ def search(queryString, latitude, longitude):
         if(len(places) > i):
             text += formatting(places[i])
         else:
-            text += queryString + "에 대한 결과가 더이상 없습니다."
+            if(places == 0):
+                text += queryString + "에 대한 결과가 없습니다."
             break
     return text
 
@@ -138,3 +141,18 @@ def queryFoodnames(userId, search_index, where, latitude, longitude):
 def filter(userId, search_index, country, temperature, spicy, simple, ingredient, latitude, longitude):
     where = stringify_where(country, temperature, spicy, simple, ingredient)
     return queryFoodnames(userId, search_index, where, float(latitude), float(longitude))
+
+
+def searchDirectry(list, latitude, longitude):
+    fulfillmentMessages = []
+    fulfillmentMessages.append(makeDic("랜덤으로 추천해드릴게요!"))
+    connection = sqlite3.connect("foodDic.db")
+    cursor = connection.cursor()
+    print("searchDirectry")
+    for i in list:
+        cursor.execute("SELECT name FROM foodDicTable WHERE indexnum=?", (i,))
+        name = cursor.fetchone()[0]
+        print(name)
+        dic = makeDic(search(name, latitude, longitude))
+        fulfillmentMessages.append(dic)
+    return fulfillmentMessages

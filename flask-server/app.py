@@ -34,6 +34,7 @@ def detect_intent_texts(project_id, session_id, texts, language_code, location):
         response = session_client.detect_intent(
             request={"session": session, "query_input": query_input}
         )
+        print("Response: {}".format(response))
 
         print("=" * 20)
         print("Query text: {}".format(response.query_result.query_text))

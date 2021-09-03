@@ -255,4 +255,5 @@ def webhook():
 
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True, ssl_context=(
+        '/etc/letsencrypt/live/foodselect.shop/fullchain.pem', '/etc/letsencrypt/live/foodselect.shop/privkey.pem'))

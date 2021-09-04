@@ -131,7 +131,7 @@ def message():
     return detect_intent_texts(project_id, session_id, texts, "ko", location)
 
 
-@app.route('/webhook', methods=['POST'])
+@app.route('/webhook', methods=['POST', 'GET'])
 def webhook():
     print("=======webhook=======")
     from food_filter import filter

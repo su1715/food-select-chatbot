@@ -116,7 +116,7 @@ def signin():
         return jsonify(result="fail", error="계정정보가 일치하지 않습니다.")
 
 
-@app.route('/message', methods=['POST'])
+@app.route('/message', methods=['POST', 'GET'])
 def message():
     data = request.get_json(force=True)
     message = data['message']

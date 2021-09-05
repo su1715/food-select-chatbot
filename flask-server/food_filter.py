@@ -36,7 +36,7 @@ def stringify_where(country, temperature, spicy, simple, ingredient):
     # spicy
     if(spicy == "매운"):
         where = where + "spicy = 1 AND "
-    elif(spicy == "안 매운"):
+    elif(spicy == "안매운"):
         where = where + "n_spicy = 1 AND "
 
     # simple
